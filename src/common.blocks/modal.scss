@@ -15,7 +15,9 @@
 
   &_active {
     display: flex;
+    position: fixed;
   }
+
 
   &__container {
     @include mixins.container;

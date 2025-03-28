@@ -63,9 +63,9 @@ interface IContactsForm {
 
 ### Форма ввода адреса для покупки. Расширяет Интерфейс IContactsForm
 ```
-interface IOrderForm extends IContactsForm{
+interface IOrderForm {
     adress: string;
-    payment: string;
+    paymentMethod: 'card' | 'cash';
 }
 ```
 
@@ -110,32 +110,19 @@ interface IOrderResult {
 
 ### Слой данных
 
-#### Интерфейс IDataModel определяет структуру и методы, которые должен иметь класс DataModel. productCards - массив карточек продуктов, selectedСard - выбранная карточка, а setPreview - метод для установки выбранной карточки.
-```
-interface IDataModel {
-   protected _productCards: ICardProduct[]; 
-   protected _selectedСard: ICardProduct;
-  setPreview(item: ICardProduct): void;
-}
-```
-#### Класс DataModel реализует Интерфейс IDataModel. Он хранит данные о продуктах и выбранной карточки.Класс имеет следующие свойства и методы:
-- protected _productCards: ICardProduct[];
-- protected _selectedСard: ICardProduct;
-- setPreview(item: ICardProduct) -  Получает данные карточки которую открыл пользователь.Этот метод используется для октрытия модального окна
+#### Класс DataModel. Он хранит данные о продуктах и выбранной карточки.Класс имеет следующие свойства и методы:
+- protected productCards: ICardProduct[]; -  Хранит список карточек продуктов. Используется для хранения всех доступных карточек продуктов в приложении. Доступ к этому полю осуществляется через геттер и сеттер.
+- protected selectedСard: ICardProduct; - Хранит текущую выбранную карточку продукта. Это поле используется для хранения информации о карточке, которую пользователь выбрал для просмотра.
 
-#### Интерфейс IBasketModel определяет структуру и методы, которые должен иметь класс BasketModel:
-```
-interface IBasketModel {
-  protected _basketProducts: ICardProduct[];
-  getCounter: () => number;
-  getSumAllProducts: () => number;
-  setSelectedСard(data: ICardProduct): void;
-  deleteCardToBasket(item: ICardProduct): void;
-  clearBasketProducts(): void
-}
-  ```
+constructor(protected events: IEvents) - принимает при создании брокер событий
 
-#### Класс BasketModel реализует Интерфейс IBasketModel, хранит и работает с данными, полученными от пользователя. 
+- Сеттер для свойства productCards. - При установке нового значения для productCards, мы вызываем метод emit из events, передавая событие productCardsUpdated и новое значение. Это позволяет другим компонентам приложения реагировать на обновление данных.
+- Геттер для свойства productCards. Возвращает текущий массив карточек продуктов.
+- setPreview(item: ICardProduct) -  Метод, который принимает объект типа ICardProduct и устанавливает его как текущую selectedCard.
+- getPreview():ICardProduct | null - Метод для получения информации о текущей выбранной карточке.Возвращает текущую выбранную карточку или null, если та не выбрана
+
+
+#### Класс BasketModel хранит и работает с данными, полученными от пользователя. 
 Свойства:
 - protected _basketProducts: ICardProduct[]; - содержит массив товаров в корзине
 
@@ -145,18 +132,9 @@ interface IBasketModel {
 - getCounter():number - возвращает количество товаров в корзине.
 - getSumProducts():number - считает и возвращает сумму синапсов всех товаров в корзине.
 - setSelectedСard(data: ICardProduct):void - принимает карточку нужного типа и добавляет товар в корзину.
-- deleteCardBasket(data: ICardProduct):void - принимает карточку нужного типа удаляет товар из корзины.
+- deleteCardBasket(id: string):void - принимает id нужного типа и удаляет товар из корзины.
 - clearBasketProducts(): void - очищает/удаляет все товары из корзины.
-
-#### Интерфейс IApiModel определяет структуру и методы, которые должен иметь класс ApiModel:
-```
-interface IApiModel {
-  protected _cdn: string; 
-  getListProductCard():void;
-  getIdProduct():void;
-  createOrder(): void
-}
-  ```
+- getProductsIds():  string[] - возвращает массив id товаров
 
 #### Класс ApiModel наследует класс Api и передает\получает данные с сервера.
 Свойства:
@@ -169,73 +147,74 @@ interface IApiModel {
 - getIdProduct(id: string) => Promise<ICardProduct> - возвращает товар по его id
 - createOrder: (order: IOrderForm) => Promise<IOrderResult> - отправляет переданный заказ на сервер и возвращает результат
 
+#### Класс FormModel хранит и получает данные, полученные от пользователя
 
-#### Класс FormModel хранит и получает данные полученные от пользователя
 Свойства:
-- private payment: string;
-- private email: string;
-- private phone: string;
-- private address: string;
+- private orderData: IOrderForm; - Это свойство указывает, как будет производиться оплата и содержит адрес доставки.
+- private contactData: IContactsForm; - Содержит адрес электронной почты и номер телефона. Эти свойства хранят данные о заказе и контактах.
 
-Методы: 
-- setOrderAddress(field: string, value: string) - принимает/сохраняет адрес пользователя.
-- validateOrder(): boolean - проверяет адрес пользователя / и способ оплаты.
-- setOrderData(field: string, value: string) - принимаем/сохраняет номер телефона/почту пользователя.
-- validateContacts(): boolean - проверяет номер телефона/почту пользователя.
-- getOrderLot(basket: IBasketModel): { 
-    total: number; 
-    items: string[]; 
-  }; - будет принимать экземпляр BasketModel и возвращать объект с данными о стоимости и списке товаров
-
-### Слой представления
-
-#### Класс Basket отвечает за отоброжение корзины и ее содержимого
-Свойства:
-- private basket: HTMLElement; 
-- private title: HTMLElement; 
-- private basketList: HTMLElement; 
-- private button: HTMLButtonElement; 
-- private basketPrice: HTMLElement; 
-- private headerBasketButton: HTMLButtonElement; 
-- private headerBasketCounter: HTMLElement; 
-
-- private items: IProductItem[] = []; // Хранит товары в корзине
-
-Конструктор инициализирует элементы разметки из темплейт
+Конструктор инициализирует orderData и contactData значениями по умолчанию.
 
 Методы:
-- render() - отображение корзины.
-- renderHeaderBasketCounter(value: number): обновляет счетчик товаров в заголовке.
-- renderSumAllProducts(sumAll: number): обновляет отображение общей стоимости товаров в корзине.
-- addItem(data: IProductItem): добавляет новый товар в корзину.
-- removeItem(item: HTMLElement): удаляет товар из корзины.
-- createBasketItem(data: IProductItem) - служит для создания и отображения элемента товара в корзине
-- updateBasketPrice(): обновляет сумму всех товаров и счетчик.
-- setPrice(value: number) - принимает цену продукта в числовом значении и возвращает в строчном.
+- set paymentMethod(method: 'card' | 'cash') - является сеттером, который устанавливает способ оплаты.
+- set address(address: string) - сеттер для установки адреса доставки.
+- get order() - геттер, который возвращает объект с данными заказа.
+- set email(email: string) - сеттер для установки электронной почты.
+- set phone(phone: string) - сеттер для установки номера телефона.
+- get contact() - геттер, который возвращает объект с контактными данными.
+- validate(): boolean - метод для валидации данных. Проверяет корректность электронной почты, номера телефона, адреса и способа оплаты. Возвращает true, если все данные валидны, и false в противном случае.
+- getOrderLot(basket: BasketModel): { total: number; items: string[]; } - метод, который принимает BasketModel и возвращает объект с данными о стоимости и списке товаров.
 
-#### Класс Card реализует Интерфейс ICardProduct и управляет отображением карточки неа главной странице
+### Слой представления\
+
+#### Класс Basket. Класс Basket отвечает за представление корзины. Он взаимодействует с моделью корзины (BasketModel) и обновляет отображение, когда происходят изменения
 Свойства:
-- protected _title - элемент заголовка карточки
-- protected _category - элемент категории карточки;
-- protected _description - элемент описания карточки
-- protected _image - элемент картинки карточки
-- protected _price - элемент цены карточки
+- private title: HTMLElement - Заголовок "Корзина"
+- private list: HTMLElement - Список товаров корзине
+- private total: HTMLElement - Сумма всех синапсов
+- private model: BasketModel - модель корзины
+- button: HTMLElement - Кнопка оформления заказа
+
+Конструктор принимает темплейт разметки, модель, брокер событий и инициализирует свойства и контейнер корзины
 
 Методы:
+- set items(value: HTMLElement[]): void: Устанавливает список товаров в корзине. Принимает массив элементов HTMLElement.
+- set total(value: number): void: Устанавливает итоговую сумму синапсов. Принимает число.
+- private updateTotal(): void - использует метод getSumProducts модели BasketModel для подсчета суммы синапсов и использует сеттер для обновления суммы.
+- private closeBasket(): void - метод закрытия корзины.
+
+#### Класс BasketItemView. Класс BasketItemView представляет отдельный товар в корзине и отвечает за отображение информации о товаре и обработку событий, связанных с ним.
+Свойства:
+- private title:HTMLElement - название товара в корзине
+- private index: HTMLElement - порядковый номер товара в корзине
+- private price: HTMLElement - стоимость товара в корзине
+- buttonDelete: HTMLElement - кнопка удаления товара из корзины
+
+Конструктор принимает темплейт из разметки, брокер событий и инициализирует свойства
+
+Методы:
+- set index(value: number): void: Устанавливает порядковый номер товара. Принимает число.
+- set title(value: string): void: Устанавливает название товара. Принимает строку.
+- set price(value: number): void: Устанавливает цену товара. Принимает число.
+- handleDelete(event: Event): void: Обрабатывает событие удаления товара из корзины. 
+
+#### Класс Card управляет отображением карточки на главной странице и в превью
+Свойства:
+- protected _card: HTMLElement; - контейнер карточки
+- protected _category: HTMLElement;
+- protected _title: HTMLElement;
+- protected _image: HTMLImageElement;
+- protected _price: HTMLElement;
+- protected _description: HTMLElement | null;
+- protected  button: HTMLElement; - кнопка "добавить в корзину"
+
+Методы:
+- protected setText(value: number | null): string - преобразовывает числовое значение в строку, если у товара нет цены - делает его "бесценным"
 - render(data: ICardProduct) - отвечает за отображение содержимого карточки на странице  
 
-Конструктор принимает родительский контейнер.
+Конструктор принимает родительский контейнер, брокер событий,обработчик клика и инициализирует свойства из разметки
 
 
-#### Класс CardPrewiew отвечает за отображение подробного описания карточки товара в модальном окне и дает возможность добавить ее в корзину. наследует класс Card 
-Свойства: 
-- protected _description: HTMLElement - текст карточки 
-- protected _button: HTMLButtonElement - кнопка добавления в корзину
-
-Конструктор принимает темплейт-превью.
-
-Методы:
-- render - отвечает за отображение карточки в превью
 
 
 #### Класс OrderFormPayment  отвечает за выбор оплаты, ввод адреса и отображение модального окна
@@ -267,19 +246,18 @@ interface IApiModel {
 #### Класс Modal отвечает за открытие и закрытие модального окна
 
 Свойства:
-- containerModal - Элемент разметки (родительский контейнер)
-- buttonClose - кнопка закрытия 
-- content - блок основного содержимого в контейнере
-- pageWrapper - Главная страница
+- protected containerModal - Элемент разметки (родительский контейнер)
+- protected buttonClose - кнопка закрытия 
+- protected _content - блок основного содержимого в контейнере
+- protected _pageWrapper - Главная страница
 
-В конструктор принимает блок modal-container
+В конструктор принимает блок modal-container и брокер событий
 
 Методы:
-- open()
-- close()
-- render()
-
-
+- set content(value: HTMLElement) - принимает элемент разметки которая будет отображаться в "modal__content" модального окна
+- open(): void - открытие модального окна
+- close(): void - закрытие модального окна
+- render(): void - отображение модального окна
 
 #### Класс Success отвечает за отоброжение окна удачной покупки 
 Свойства:
