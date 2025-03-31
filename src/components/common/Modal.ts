@@ -4,13 +4,11 @@ export class Modal {
 	protected modalContainer: HTMLElement;
 	protected closeButton: HTMLButtonElement;
 	protected _content: HTMLElement;
-	protected _pageWrapper: HTMLElement;
 
 	constructor(modalContainer: HTMLElement, protected events: EventEmitter) {
 		this.modalContainer = modalContainer;
 		this.closeButton = modalContainer.querySelector('.modal__close');
 		this._content = modalContainer.querySelector('.modal__content');
-		this._pageWrapper = document.querySelector('.page__wrapper');
 
 		this.closeButton.addEventListener('click', this.close.bind(this));
 		this.modalContainer.addEventListener('click', this.close.bind(this));

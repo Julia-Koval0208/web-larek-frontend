@@ -42,9 +42,9 @@ export class Card implements ICard {
 		const colorCategory = {
 			'софт-скил': '_soft',
 			'хард-скил': '_hard',
-			'другое': '_other',
-			'дополнительное': '_additional',
-			'кнопка': '_button',
+			другое: '_other',
+			дополнительное: '_additional',
+			кнопка: '_button',
 		};
 
 		this._category.textContent = data.category;
@@ -65,7 +65,7 @@ export class Card implements ICard {
 
 export class CardPreview extends Card {
 	protected _description: HTMLElement;
-	protected button: HTMLButtonElement;
+	button: HTMLButtonElement;
 
 	constructor(containerTemplate: HTMLTemplateElement, events: EventEmitter) {
 		super(containerTemplate, events);
@@ -74,7 +74,7 @@ export class CardPreview extends Card {
 
 		this.button.addEventListener('click', (evt) => {
 			evt.stopPropagation();
-			events.emit('buttonBasket: click');
+			events.emit('buttonBasket: click', this);
 		});
 	}
 

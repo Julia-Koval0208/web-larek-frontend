@@ -11,7 +11,6 @@ interface IBasketView {
 
 export class Basket extends Component<IBasketView> {
 	protected basket: HTMLElement;
-	protected _title: HTMLElement;
 	protected _list: HTMLElement;
 	protected _total: HTMLElement;
 	protected model: BasketModel;
@@ -24,18 +23,16 @@ export class Basket extends Component<IBasketView> {
 	) {
 		super(basketTemplate);
 		this.basket = basketTemplate;
-		this._title = basketTemplate.querySelector('.modal__title');
 		this._list = basketTemplate.querySelector('.basket__list');
 		this._total = basketTemplate.querySelector('.basket__price');
 		this._button = basketTemplate.querySelector('.basket__button');
 		this.model = model;
-		this._title.textContent = 'Корзина';
 
 		this.items = [];
 
 		this._button.addEventListener('click', () => {
-			event.emit("buttonOrder: click")
-		})
+			event.emit('buttonOrder: click');
+		});
 	}
 
 	set items(items: HTMLElement[]) {
@@ -67,32 +64,30 @@ export class Basket extends Component<IBasketView> {
 }
 
 export class BasketItem {
-	private basketItemTemplate: HTMLElement;
+	private container: HTMLElement;
 	protected index: HTMLElement;
 	protected title: HTMLElement;
 	protected price: HTMLElement;
 	protected button: HTMLElement;
-	id: string;
+	protected id: string;
 
 	constructor(template: HTMLTemplateElement, event: EventEmitter) {
-		this.basketItemTemplate = template;
-		this.index = this.basketItemTemplate.querySelector('.basket__item-index');
-		this.title = this.basketItemTemplate.querySelector('.card__title');
-		this.price = this.basketItemTemplate.querySelector('.card__price');
-		this.button = this.basketItemTemplate.querySelector('.basket__item-delete');
+		this.container = template;
+		this.index = this.container.querySelector('.basket__item-index');
+		this.title = this.container.querySelector('.card__title');
+		this.price = this.container.querySelector('.card__price');
+		this.button = this.container.querySelector('.basket__item-delete');
 
 		this.button.addEventListener('click', (evt) => {
 			event.emit('ItemDelete: click', this);
 		});
 	}
 
-	
-
 	render(card: ICardProduct, index: number) {
 		this.id = card.id;
 		this.title.textContent = card.title;
 		this.price.textContent = String(card.price) + ' синапсов';
 		this.index.textContent = String(index + 1);
-		return this.basketItemTemplate;
+		return this.container;
 	}
 }

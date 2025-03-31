@@ -1,8 +1,9 @@
-import { ICardProduct, IOrderForm, IOrderResult } from "../../types";
+import { ICardProduct, IOrder, IOrderResult } from "../../types";
 import { Api, ApiListResponse } from "../base/api";
 
 export class ApiModel extends Api {
   protected _cdn: string;
+  
   constructor(cdn:string, baseUrl:string, options: RequestInit = {}) {
     super(baseUrl, options)
     this._cdn = cdn
@@ -24,7 +25,7 @@ export class ApiModel extends Api {
 		}));
 	}
 
-  createOrder(order: IOrderForm): Promise<IOrderResult> {
+  createOrder(order: IOrder): Promise<IOrderResult> {
     return this.post('/order', order).then((item: IOrderResult) => {
         return item; // Вернуть результат, полученный от сервера
     });

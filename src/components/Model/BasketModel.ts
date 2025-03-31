@@ -12,11 +12,11 @@ export class BasketModel {
 		return this._basketProducts;
 	}
 
-	getCounter() {
+	getCounter():number {
 		return this._basketProducts.length;
 	}
 
-	getSumProducts() {
+	getSumProducts(): number {
 		return this._basketProducts.reduce(
 			(sum, product) => sum + product.price,
 			0

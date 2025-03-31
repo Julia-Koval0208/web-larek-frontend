@@ -1,7 +1,7 @@
 import { ensureElement } from '../../utils/utils';
 import { Component } from '../base/componets';
 import { IEvents } from '../base/events';
-import { FormModel } from '../Model/FormModel';
+import { AppData } from '../Model/AppData';
 
 interface IFormState {
 	valid: boolean;
@@ -11,7 +11,7 @@ interface IFormState {
 export class Form<T> extends Component<IFormState> {
 	protected _submit: HTMLButtonElement;
 	protected _errors: HTMLElement;
-	protected formModel: FormModel;
+	protected formModel: AppData;
 
 	constructor(protected container: HTMLFormElement, protected events: IEvents) {
 		super(container);
@@ -22,32 +22,25 @@ export class Form<T> extends Component<IFormState> {
 		);
 		this._errors = ensureElement<HTMLElement>('.form__errors', this.container);
 
-		this.container.addEventListener('input', (e: Event) => {
-			const target = e.target as HTMLInputElement;
-			const field = target.name as keyof T;
-			const value = target.value;
-			this.onInputChange(field, value);
-		});
-
 		this.container.addEventListener('submit', (e: Event) => {
 			e.preventDefault();
 			this.events.emit(`${this.container.name}:submit`);
 		});
 	}
 
-	protected onInputChange(field: keyof T, value: string) {
-		this.events.emit(`${this.container.name}.${String(field)}:change`, {
-			field,
-			value,
-		});
-
-		const isValid = this.formModel.validateOrder();
-		this._submit.disabled = !isValid; // Обновляем состояние кнопки отправки
-		console.log('Состояние кнопки:', this._submit.disabled);
-	}
-
 	set errors(value: string) {
 		this.setText(this._errors, value);
+	}
+
+	protected validState(validateFn: () => boolean) {
+		// Деактивируем кнопку, если форма не валидна
+		const valid = validateFn();
+		this._submit.disabled = !valid;
+	}
+
+	// Метод для установки ошибок
+	protected setErrors(errors: { [key: string]: string }) {
+		this.errors = Object.values(errors).join(', '); // Отображаем ошибки в интерфейсе
 	}
 
 	render(state: Partial<T> & IFormState) {
