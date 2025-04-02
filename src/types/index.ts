@@ -40,6 +40,14 @@ export interface IOrder {
 	phone: string;
 }
 
+export interface IOrderForm {
+	payment: string;
+	address: string;
+	email: string;
+	phone: string;
+  }
+
+export type FormErrors = Partial<Record<keyof IOrderForm, string>>;
 
 export interface IOrderResult {
 	id: string;

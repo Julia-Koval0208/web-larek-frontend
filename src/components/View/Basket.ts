@@ -5,6 +5,7 @@ import { EventEmitter } from '../base/events';
 import { BasketModel } from '../Model/BasketModel';
 
 interface IBasketView {
+	items: HTMLElement[];
 	total: number;
 	selected: string[];
 }
@@ -60,34 +61,5 @@ export class Basket extends Component<IBasketView> {
 
 	updateTotal(): void {
 		this._total.textContent = String(this.model.getSumProducts()) + ' синапсов';
-	}
-}
-
-export class BasketItem {
-	private container: HTMLElement;
-	protected index: HTMLElement;
-	protected title: HTMLElement;
-	protected price: HTMLElement;
-	protected button: HTMLElement;
-	protected id: string;
-
-	constructor(template: HTMLTemplateElement, event: EventEmitter) {
-		this.container = template;
-		this.index = this.container.querySelector('.basket__item-index');
-		this.title = this.container.querySelector('.card__title');
-		this.price = this.container.querySelector('.card__price');
-		this.button = this.container.querySelector('.basket__item-delete');
-
-		this.button.addEventListener('click', (evt) => {
-			event.emit('ItemDelete: click', this);
-		});
-	}
-
-	render(card: ICardProduct, index: number) {
-		this.id = card.id;
-		this.title.textContent = card.title;
-		this.price.textContent = String(card.price) + ' синапсов';
-		this.index.textContent = String(index + 1);
-		return this.container;
 	}
 }

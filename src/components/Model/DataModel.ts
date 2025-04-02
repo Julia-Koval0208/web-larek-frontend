@@ -25,7 +25,6 @@ export class DataModel {
     // Метод для установки выбранной карточки
     setPreview(item: ICardProduct) {
         this._selectedCard = item; // Устанавливаем выбранную карточку
-        this.events.emit('selectedCardUpdated', item); // Уведомляем о том, что карточка выбрана
     }
 
     // Метод для получения информации о текущей выбранной карточке

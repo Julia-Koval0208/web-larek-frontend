@@ -1,10 +1,13 @@
 import { ICardProduct } from '../../types';
+import { EventEmitter } from '../base/events';
 
 export class BasketModel {
 	protected _basketProducts: ICardProduct[];
+	events: EventEmitter;
 
-	constructor() {
+	constructor(events: EventEmitter) {
 		this._basketProducts = [];
+		this.events = events; // Инициализируем EventEmitter
 	}
 
 	// Метод для получения всех продуктов в корзине
@@ -12,7 +15,7 @@ export class BasketModel {
 		return this._basketProducts;
 	}
 
-	getCounter():number {
+	getCounter(): number {
 		return this._basketProducts.length;
 	}
 
@@ -25,12 +28,14 @@ export class BasketModel {
 
 	setSelectedСard(data: ICardProduct) {
 		this._basketProducts.push(data);
+		this.events.emit('basket:updated'); // Генерируем событие при добавлении товара
 	}
 
 	deleteCardBasket(id: string) {
 		this._basketProducts = this._basketProducts.filter(
 			(card) => card.id !== id
 		);
+		this.events.emit('basket:updated'); // Генерируем событие при удалении товара
 	}
 
 	clearBasketProducts() {
@@ -39,5 +44,10 @@ export class BasketModel {
 
 	getProductsIds(): string[] {
 		return this._basketProducts.map((product) => product.id); // Получаем массив ID товаров
+	}
+
+	// Метод для проверки наличия карточки в корзине
+	isCardInBasket(cardId: string): boolean {
+		return this.getProducts().some((card) => card.id === cardId);
 	}
 }

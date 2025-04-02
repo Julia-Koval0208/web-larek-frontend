@@ -84,6 +84,47 @@ interface IPayment {
 export type Order = IContacts & IPayment;
 ```
 
+### Интерфейс данных заказа
+
+```
+export interface IOrder {
+	// Массив ID купленных товаров
+	items: string[];
+
+	// Способ оплаты
+	payment: string;
+
+	// Сумма заказа
+	total: number;
+
+	// Адрес доставки
+	address: string;
+
+	// Электронная почта
+	email: string;
+
+	// Телефон
+	phone: string;
+}
+```
+
+### Интерфейс для обновления данных заказа
+
+```
+export interface IOrderForm {
+	payment: string;
+	address: string;
+	email: string;
+	phone: string;
+  }
+```
+
+### Тип ошибок валидации
+
+```
+export type FormErrors = Partial<Record<keyof IOrderForm, string>>;
+```
+
 ### Тип данных для работы с севером, где id - идентификатор товара, а total - сумма
 
 ```
@@ -155,20 +196,21 @@ interface IOrderResult {
 - deleteCardBasket(id: string) - принимает id карточки и удаляет ее
 - clearBasketProducts() - метод очистки корзины
 - getProductsIds(): string[] - метод для получения массива id карточек
+- isCardInBasket(cardId: string): boolean - // Метод для проверки наличия карточки в корзине
 
 #### class AppData. Хранит в себе данные о заказе и выполняет валидацию полей заказа и контактов.
 
 Свойства:
 
-- formErrors: { [key: string]: string } = {} - Объект для хранения ошибок валидации формы
-- protected events: IEvents - Экземпляр класса событий
+- protected events: IEvents; - брокер событий
 - order: IOrder - объект заказа
+- basket: BasketModel - модель данных корзины
 
 - Конструктор создает пустой Экземпляр объекта заказа
 
 Методы:
 
-- updateOrder(field: keyof Order, value: string) - метод обновления данных. field - Поле заказа, которое нужно обновить, value - Новое значение для указанного поля.
+- setOrderField(field: keyof IOrderForm, value: string) - обновляет данные заказа
 - validateOrder():boolean - Выполняет валидацию заказа. Проверяет обязательные поля и возвращает true, если ошибок нет.
 - validateContacts(): boolean - Выполняет валидацию контактных данных. Проверяет обязательные поля и возвращает true, если ошибок нет.
 - refreshOrder() - Сбрасывает данные заказа к начальному состоянию.\
@@ -177,7 +219,7 @@ interface IOrderResult {
 
 Свойства:
 
-- protected \_cdn: string - URL для загрузки изображений
+- cdn: string - URL для загрузки изображений
 
 - Конструктор создает экземпляр класса ApiModel
 
@@ -217,7 +259,6 @@ interface IOrderResult {
 - protected title: HTMLElement - Заголовок товара
 - protected price: HTMLElement - цена товара
 - protected button: HTMLElement - кнопка для удаления товара из корзины
-- protected id: string - id товара
 
 - Конструктор создает экземпляр IBasketView
 
@@ -234,7 +275,7 @@ interface IOrderResult {
 - protected \_title: HTMLElement - элемент заголовка
 - protected \_image: HTMLImageElement - элемент изображения
 - protected \_price: HTMLElement - элемент цены
-
+- protected \_id: string; - id товара
 - Конструктор создает экземпляр класса Card.
 
 Методы:
@@ -254,6 +295,7 @@ interface IOrderResult {
 Методы:
 
 - render(data: ICardProduct): HTMLElement - Отображает карточку продукта с дополнительной информацией.
+- setButtonState(isDisabled: boolean) - меняет состояние кнопки, если приходит true (карточка в корзине) = disabled
 
 #### Базовый класс Form для работы с формами
 
@@ -261,7 +303,6 @@ interface IOrderResult {
 
 - protected \_submit: HTMLButtonElement - Кнопка для отправки формы.
 - protected \_errors: HTMLElement - Элемент для отображения ошибок формы.
-- protected formModel: AppData - Хранит модель данных формы, которая управляет состоянием и валидацией.
 
 Конструктор:
 
@@ -270,16 +311,12 @@ interface IOrderResult {
 
 Методы:
 
-- set errors(value: string): Устанавливает текст ошибок для отображения в интерфейсе.
-- validState(validateFn: () => boolean): Проверяет валидность формы и деактивирует кнопку отправки, если форма не валидна.
-- setErrors(errors: { [key: string]: string }): Устанавливает ошибки валидации и отображает их в интерфейсе.
+- set valid(value: boolean) - сеттер для блокировки кнопки
+- set errors(value: string) - сеттер для ввода ошибок
+- reset() - сбрасывает форму
 - render(state: Partial<T> & IFormState): Отрисовывает состояние формы, обновляя интерфейс в соответствии с состоянием валидации и входными данными.
 
-#### class Contacts расширяет базовый класс Form и отвечает за обработку формы контактов.
-
-Свойства:
-
-- protected formModel: AppData - Хранит модель данных формы, которая управляет состоянием и валидацией.
+#### class Contacts расширяет базовый класс Form
 
 - Конструктор создает экземпляр класса Contacts
 
@@ -289,29 +326,27 @@ interface IOrderResult {
 
 - protected \_card: HTMLButtonElement - Кнопка для оплаты картой.
 - protected \_cash: HTMLButtonElement - Кнопка для оплаты наличными.
-- protected formModel: AppData - Хранит модель данных формы, которая управляет состоянием и валидацией.
+- protected paymentMethod: string | null = null; - выбор оплаты
 
 - Конструктор создает экземпляр класса Order.
 
 Методы:
 
-- private onPaymentChange(paymentMethod: string) - Обрабатывает изменение способа оплаты, обновляя соответствующее значение в модели данных и проверяя валидность.
+- disableButtons() - убирает обводку с выбора оплаты
+- reset(): void - срасывает форму, состояние метода оплаты и убирает обводку с кнопок
 
 #### class success представляет собой компонент для отображения успешного завершения заказа.
 
 Свойства:
 
-- protected template: HTMLElement - Шаблон элемента, содержащий разметку для успешного сообщения.
-- protected container: HTMLElement - Контейнер для успешного сообщения.
-- rotected description: HTMLElement - Элемент описания успешного сообщения.
-- protected total: number - Общая сумма, связанная с успешным заказом.
-- protected button: HTMLButtonElement - Кнопка для закрытия успешного сообщения.
+- protected \_total: HTMLElement; - сумма заказа
+- protected \_close: HTMLElement; - кнопка закрытия
 
 - Конструктор создает экземпляр класса Success.
 
 Методы:
 
-- render(): Отрисовывает компонент успешного сообщения, устанавливает текст описания и возвращает элемент с успешным сообщением.
+- set total(value: string) - сеттер для обновления суммы заказа
 
 #### class Page представляет собой компонент страницы, который управляет отображением счетчика и взаимодействием с корзиной
 
@@ -319,25 +354,30 @@ interface IOrderResult {
 
 - protected \_counter: HTMLElement - Элемент, отображающий счетчик.
 - protected \_basket: HTMLElement - Элемент корзины.
+- protected \_catalog: HTMLElement; - главная страница для вывода карточек
 
 - Конструктор создает экземпляр класса Page.
 
 Методы:
 
+- set catalog(items: HTMLElement[]) - для вывода карточек на страницу
 - set counter(value: number) - Устанавливает значение счетчика и обновляет текстовое содержимое элемента счетчика.
 
 #### class Modal редставляет собой модальное окно, которое может открываться и закрываться, а также отображать динамическое содержимое
 
 Свойства:
+
 - protected modalContainer: HTMLElement - Контейнер модального окна.
 - protected closeButton: HTMLButtonElement - Кнопка закрытия модального окна.
 - protected \_content: HTMLElement - Элемент для отображения содержимого модального окна.
 
 Конструктор:
+
 - Принимает контейнер модального окна и объект для работы с событиями.
 - Инициализирует элементы и добавляет обработчики событий для открытия и закрытия модального окна.
 
 Метиоды:
+
 - set content(value: HTMLElement): Устанавливает содержимое модального окна, заменяя его на переданный элемент.
 - open(): Открывает модальное окно
 - close(): Закрывает модальное окно

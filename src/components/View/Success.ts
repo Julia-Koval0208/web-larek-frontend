@@ -1,31 +1,31 @@
-import { EventEmitter } from '../base/events';
-import { BasketModel } from '../Model/BasketModel';
+import { ensureElement } from '../../utils/utils';
+import { Component } from '../base/componets';
 
-export class Success {
-	protected template: HTMLElement;
-	protected container: HTMLElement;
-	protected description: HTMLElement;
-	protected total: number;
-	protected button: HTMLButtonElement;
 
-	constructor(
-		template: HTMLTemplateElement,
-		events: EventEmitter,
-		total: number,
-		options?: { onClick?: () => void }
-	) {
-		this.template = template;
-		this.container = this.template.querySelector('.order-success');
-		this.description = this.template.querySelector(
-			'.order-success__description'
-		);
-		this.total = total;
-		this.button = this.template.querySelector('.order-success__close');
-		this.button.addEventListener('click', options.onClick);
+interface ISuccess {
+	total: number;
+  }
+  
+  interface ISuccessActions {
+	onClick: () => void;
+  }
+  
+  export class Success extends Component<ISuccess> {
+	protected _total: HTMLElement;
+	protected _close: HTMLElement;
+  
+	constructor(container: HTMLElement, actions: ISuccessActions) {
+		super(container);
+  
+		this._close = ensureElement<HTMLElement>('.order-success__close', this.container);
+		this._total = ensureElement<HTMLElement>('.order-success__description', this.container)
+  
+		if (actions?.onClick) {
+			this._close.addEventListener('click', actions.onClick);
+		}
 	}
-
-	render() {
-		this.description.textContent = `Списано ${this.total} синапсов`;
-		return this.template;
+  
+	set total(value: string) {
+	  this._total.textContent = `Списано ${value} синапсов`;
 	}
-}
+  }

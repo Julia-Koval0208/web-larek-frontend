@@ -1,12 +1,13 @@
-import { IOrder, Order } from '../../types';
+import { FormErrors, IOrder, IOrderForm } from '../../types';
 import { IEvents } from '../base/events';
+import { BasketModel } from './BasketModel';
 
 export class AppData {
-	formErrors: { [key: string]: string } = {};
 	protected events: IEvents;
 	order: IOrder;
+	basket: BasketModel;
 
-	constructor(events: IEvents) {
+	constructor(events: IEvents, basket: BasketModel) {
 		this.order = {
 			items: [],
 			total: null,
@@ -16,42 +17,44 @@ export class AppData {
 			phone: '',
 		};
 		this.events = events;
+		this.basket = basket;
 	}
 
-	// Метод для обновления данных заказа
-	updateOrder(field: keyof Order, value: string) {
+	// Объект с ошибками форм
+	formErrors: FormErrors = {};
+
+	setOrderField(field: keyof IOrderForm, value: string) {
 		this.order[field] = value;
-		console.log(this.order);
+		this.order.total = this.basket.getSumProducts();
+		this.order.items = this.basket.getProductsIds();
+		this.validateContacts();
+		this.validateOrder();
 	}
 
-	// Метод для валидации заказа
-	validateOrder(): boolean {
-		const errors: { [key: string]: string } = {};
-		if (!this.order.address || this.order.address.length < 5) {
-			errors.address = 'Адрес обязателен, не менее 5 символов';
+	validateContacts() {
+		const errors: typeof this.formErrors = {};
+		if (!this.order.email) {
+			errors.email = 'Необходимо указать email';
+		}
+		if (!this.order.phone) {
+			errors.phone = 'Необходимо указать телефон';
+		}
+		this.formErrors = errors;
+		this.events.emit('contactsFormErrors:change', this.formErrors);
+		return Object.keys(errors).length === 0;
+	}
+
+	validateOrder() {
+		const errors: typeof this.formErrors = {};
+		if (!this.order.address) {
+			errors.address = 'Необходимо указать адрес';
 		}
 		if (!this.order.payment) {
-			errors.payment = 'Способ оплаты обязателен';
+			errors.payment = 'Необходимо указать способ оплаты';
 		}
-
 		this.formErrors = errors;
-
-		return Object.keys(errors).length === 0; // Возвращает true, если ошибок нет
-	}
-
-	// Метод для валидации контактов
-	validateContacts(): boolean {
-		const errors: { [key: string]: string } = {};
-		if (!this.order.email || this.order.email.length < 6) {
-			errors.email = 'Эл.почта обязательна, не менее 6 символов';
-		}
-		if (!this.order.phone || this.order.phone.length < 9) {
-			errors.phone = 'Введите номер телефон, не менее 9 символов';
-		}
-
-		this.formErrors = errors;
-
-		return Object.keys(errors).length === 0; // Возвращает true, если ошибок нет
+		this.events.emit('orderFormErrors:change', this.formErrors);
+		return Object.keys(errors).length === 0;
 	}
 
 	refreshOrder() {

@@ -2,18 +2,18 @@ import { ICardProduct, IOrder, IOrderResult } from "../../types";
 import { Api, ApiListResponse } from "../base/api";
 
 export class ApiModel extends Api {
-  protected _cdn: string;
+   cdn: string;
   
   constructor(cdn:string, baseUrl:string, options: RequestInit = {}) {
     super(baseUrl, options)
-    this._cdn = cdn
+    this.cdn = cdn
   }
 
   getListProductCard(): Promise<ICardProduct[]> {
     return this.get('/product').then((data: ApiListResponse<ICardProduct>) =>
 			data.items.map((item) => ({
 				...item,
-				image: this._cdn + item.image,
+				image: this.cdn + item.image,
 			}))
 		);
   }
@@ -21,7 +21,7 @@ export class ApiModel extends Api {
   getProduct(id: string): Promise<ICardProduct> {
 		return this.get(`/product/${id}`).then((item: ICardProduct) => ({
 			...item,
-			image: this._cdn + item.image,
+			image: this.cdn + item.image,
 		}));
 	}
 
