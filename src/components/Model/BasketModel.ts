@@ -28,18 +28,19 @@ export class BasketModel {
 
 	setSelectedСard(data: ICardProduct) {
 		this._basketProducts.push(data);
-		this.events.emit('basket:updated'); // Генерируем событие при добавлении товара
+		this.events.emit('basketItem:updated');
 	}
 
 	deleteCardBasket(id: string) {
 		this._basketProducts = this._basketProducts.filter(
 			(card) => card.id !== id
 		);
-		this.events.emit('basket:updated'); // Генерируем событие при удалении товара
+		this.events.emit('basketItem:updated');
 	}
 
 	clearBasketProducts() {
 		this._basketProducts = [];
+		this.events.emit('basketItem:updated');
 	}
 
 	getProductsIds(): string[] {

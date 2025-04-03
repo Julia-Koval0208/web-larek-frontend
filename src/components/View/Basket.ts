@@ -7,7 +7,6 @@ import { BasketModel } from '../Model/BasketModel';
 interface IBasketView {
 	items: HTMLElement[];
 	total: number;
-	selected: string[];
 }
 
 export class Basket extends Component<IBasketView> {

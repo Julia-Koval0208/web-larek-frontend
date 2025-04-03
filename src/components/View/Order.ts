@@ -19,18 +19,21 @@ export class Order extends Form<IPayment> {
 
 		if (this._cash) {
 			this._cash.addEventListener('click', () => {
-				this._cash.classList.add('button_alt-active');
-				this._card.classList.remove('button_alt-active');
+				this.events.emit('payment:change', this._cash);
 				this.onInputChange('payment', 'cash');
 			});
 		}
 		if (this._card) {
 			this._card.addEventListener('click', () => {
-				this._card.classList.add('button_alt-active');
-				this._cash.classList.remove('button_alt-active');
+				events.emit('payment:change', this._card);
 				this.onInputChange('payment', 'card');
 			});
 		}
+	}
+
+	setPayment(method: string) {
+		this.toggleClass(this._card, 'button_alt-active', method === 'card');
+		this.toggleClass(this._cash, 'button_alt-active', method === 'cash');
 	}
 
 	disableButtons() {
@@ -38,9 +41,9 @@ export class Order extends Form<IPayment> {
 		this._card.classList.remove('button_alt-active');
 	}
 
-  reset(): void {
-    super.reset(); // Сброс значений полей формы
-    this.paymentMethod = null; // Сбрасываем состояние метода оплаты
-    this.disableButtons()
-  }
+	reset(): void {
+		super.reset(); // Сброс значений полей формы
+		this.paymentMethod = null; // Сбрасываем состояние метода оплаты
+		this.disableButtons();
+	}
 }

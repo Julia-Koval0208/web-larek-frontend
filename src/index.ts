@@ -4,9 +4,9 @@ import { EventEmitter } from './components/base/events';
 import { ApiModel } from './components/Model/ApiModel';
 import { Card } from './components/View/Card';
 import { CardPreview } from './components/View/CardPreview';
-import { cloneTemplate, createElement } from './utils/utils';
+import { cloneTemplate } from './utils/utils';
 import { DataModel } from './components/Model/DataModel';
-import { ICardProduct, IOrder, IOrderForm, IOrderResult } from './types';
+import { ICardProduct, IOrderForm } from './types';
 import { Modal } from './components/common/Modal';
 import { Basket } from './components/View/Basket';
 import { BasketItem } from './components/View/BasketItem';
@@ -42,7 +42,7 @@ const successTemplate = document.getElementById(
 
 const basketModel = new BasketModel(events);
 const cardPreview = new CardPreview(cloneTemplate(cardTemplateView), events);
-const appData = new AppData(events, basketModel);
+const appData = new AppData(events);
 const api = new ApiModel(CDN_URL, API_URL);
 const modal = new Modal(document.getElementById('modal-container'), events);
 const dataModel = new DataModel(events);
@@ -85,14 +85,17 @@ events.on('productCards:receive', () => {
 	});
 });
 
-events.on('modalCard:open', (card: ICardProduct) => {
+events.on('modalCard:open', (item: ICardProduct) => {
 	modal.render({
-		content: cardPreview.render(card),
+		content: cardPreview.render(item),
 	});
 	const selectedCard = dataModel.getPreview();
 	if (selectedCard) {
 		const existsInBasket = basketModel.isCardInBasket(selectedCard.id);
 		cardPreview.setButtonState(existsInBasket);
+		if (selectedCard.price === null) {
+			cardPreview.setButtonState(true);
+		}
 	}
 });
 
@@ -104,7 +107,6 @@ events.on('basket:open', () => {
 
 events.on('card:select', (selectedCard: ICardProduct) => {
 	dataModel.setPreview(selectedCard);
-	events.emit('modalCard:open', selectedCard);
 });
 
 events.on('buttonBasket: click', () => {
@@ -121,6 +123,12 @@ events.on('buttonBasket: click', () => {
 });
 
 events.on('basket:updated', () => {
+	modal.render({
+		content: basket.render(),
+	});
+});
+
+events.on('basketItem:updated', () => {
 	const basketItems = basketModel.getProducts(); // Получаем актуальные товары из модели
 	// Генерируем новые карточки для отображения в корзине
 	const itemsToRender = basketItems.map((item, index) => {
@@ -129,14 +137,15 @@ events.on('basket:updated', () => {
 			events,
 			{ onClick: () => events.emit('ItemDelete: click', item) }
 		);
-		return basketItem.render(item, index);
-	});
-	basket.items = itemsToRender; // Устанавливаем карточки в представлении корзины
-	basket.updateTotal(); // Обновляем сумму
-	modal.render({
-		content: basket.render(),
+		return basketItem.render({
+			title: item.title,
+			price: item.price,
+			index: index + 1,
+		});
 	});
 	page.counter = basketModel.getCounter();
+	basket.items = itemsToRender; // Устанавливаем карточки в представлении корзины
+	basket.updateTotal();
 });
 
 events.on('ItemDelete: click', (item: ICardProduct) => {
@@ -169,24 +178,39 @@ events.on('order:submit', () => {
 });
 
 events.on('contacts:submit', () => {
+	const items = basketModel.getProductsIds(); // Получаем продукты из корзины
+	const total = basketModel.getSumProducts(); // Получаем сумму продуктов
+
+	const orderData = appData.createOrderData(items, total);
+	console.log(orderData);
 	api
-		.post('/order', appData.order)
+		.post('/order', orderData)
 		.then((result) => {
 			modal.render({
 				content: success.render({
-					total: basketModel.getSumProducts(),
+					total: orderData.total,
 				}),
 			});
 			appData.refreshOrder();
 			basketModel.clearBasketProducts();
 		})
 		.catch((err) => {
+			//если произошло прерывание с сервером, открывает окно с вводом данных заказа и и сбрасывает форму для повторного ввода данных
+			appData.refreshOrder();
+			modal.render({
+				content: order.render({
+					address: '',
+					valid: false,
+					errors: [],
+				}),
+			});
 			console.error(err);
 		});
+	order.reset();
+	contacts.reset();
 });
 
 events.on('orderFormErrors:change', (errors: Partial<IOrderForm>) => {
-	console.log('Ошибки формы заказа:', errors);
 	const { payment, address } = errors;
 	order.valid = !payment && !address;
 	order.errors = Object.values({ payment, address })
@@ -195,7 +219,6 @@ events.on('orderFormErrors:change', (errors: Partial<IOrderForm>) => {
 });
 
 events.on('contactsFormErrors:change', (errors: Partial<IOrderForm>) => {
-	console.log('Ошибки формы контактов:', errors);
 	const { email, phone } = errors;
 	contacts.valid = !email && !phone;
 	contacts.errors = Object.values({ phone, email })
@@ -210,3 +233,8 @@ events.on(
 		appData.setOrderField(data.field, data.value);
 	}
 );
+
+events.on('payment:change', (item: HTMLButtonElement) => {
+	appData.order.payment = item.name;
+	order.setPayment(appData.order.payment);
+});

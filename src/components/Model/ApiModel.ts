@@ -1,4 +1,4 @@
-import { ICardProduct, IOrder, IOrderResult } from "../../types";
+import { ICardProduct, IOrderData, IOrderResult } from "../../types";
 import { Api, ApiListResponse } from "../base/api";
 
 export class ApiModel extends Api {
@@ -25,7 +25,7 @@ export class ApiModel extends Api {
 		}));
 	}
 
-  createOrder(order: IOrder): Promise<IOrderResult> {
+  createOrder(order: IOrderData): Promise<IOrderResult> {
     return this.post('/order', order).then((item: IOrderResult) => {
         return item; // Вернуть результат, полученный от сервера
     });

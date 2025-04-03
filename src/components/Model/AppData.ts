@@ -1,23 +1,23 @@
-import { FormErrors, IOrder, IOrderForm } from '../../types';
+import {
+	FormErrors,
+	IOrderData,
+	IOrderForm,
+	Order,
+} from '../../types';
 import { IEvents } from '../base/events';
-import { BasketModel } from './BasketModel';
 
 export class AppData {
 	protected events: IEvents;
-	order: IOrder;
-	basket: BasketModel;
+	order: Order;
 
-	constructor(events: IEvents, basket: BasketModel) {
+	constructor(events: IEvents) {
 		this.order = {
-			items: [],
-			total: null,
 			address: '',
 			payment: '',
 			email: '',
 			phone: '',
 		};
 		this.events = events;
-		this.basket = basket;
 	}
 
 	// Объект с ошибками форм
@@ -25,10 +25,9 @@ export class AppData {
 
 	setOrderField(field: keyof IOrderForm, value: string) {
 		this.order[field] = value;
-		this.order.total = this.basket.getSumProducts();
-		this.order.items = this.basket.getProductsIds();
 		this.validateContacts();
 		this.validateOrder();
+		console.log(this.order);
 	}
 
 	validateContacts() {
@@ -59,12 +58,19 @@ export class AppData {
 
 	refreshOrder() {
 		this.order = {
-			items: [],
-			total: null,
 			address: '',
 			email: '',
 			phone: '',
 			payment: '',
+		};
+	}
+
+	// Метод для создания объекта заказа
+	createOrderData(items: string[], total: number): IOrderData {
+		return {
+			...this.order,
+			items,
+			total,
 		};
 	}
 }

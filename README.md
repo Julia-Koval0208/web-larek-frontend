@@ -204,7 +204,6 @@ interface IOrderResult {
 
 - protected events: IEvents; - брокер событий
 - order: IOrder - объект заказа
-- basket: BasketModel - модель данных корзины
 
 - Конструктор создает пустой Экземпляр объекта заказа
 
@@ -213,7 +212,9 @@ interface IOrderResult {
 - setOrderField(field: keyof IOrderForm, value: string) - обновляет данные заказа
 - validateOrder():boolean - Выполняет валидацию заказа. Проверяет обязательные поля и возвращает true, если ошибок нет.
 - validateContacts(): boolean - Выполняет валидацию контактных данных. Проверяет обязательные поля и возвращает true, если ошибок нет.
-- refreshOrder() - Сбрасывает данные заказа к начальному состоянию.\
+- refreshOrder() - Сбрасывает данные заказа к начальному состоянию.
+- createOrderData(items: string[], total: number): IOrderData - Метод для создания объекта заказа
+	
 
 #### class ApiModel наследует класс api и отвечает за взаимодействие с API
 
@@ -264,7 +265,9 @@ interface IOrderResult {
 
 Методы:
 
-- render(card: ICardProduct, index: number) - Отображает информацию о товаре в корзине.
+- set index(value: number) - устанавливает порядковый номер товара
+- set title(value: string) - устанавливает заголовок товара
+- set price(value: string) - устанавливает цену товара
 
 #### class Card отвечает за отображение карточки продукта.
 

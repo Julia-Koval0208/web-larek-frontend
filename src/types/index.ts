@@ -4,7 +4,7 @@ export interface ICardProduct {
 	description: string;
 	image: string;
 	title: string;
-	category: string;
+	category?: string;
 	price: number | null;
 }
 
@@ -20,16 +20,11 @@ export interface IContacts {
 
 export type Order = IContacts & IPayment;
 
-export interface IOrder {
-	// Массив ID купленных товаров
-	items: string[];
-
-	// Способ оплаты
+export interface IOrderData {
+	items: string[],
+	total: number,
+// Способ оплаты
 	payment: string;
-
-	// Сумма заказа
-	total: number;
-
 	// Адрес доставки
 	address: string;
 

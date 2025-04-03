@@ -25,6 +25,7 @@ export class DataModel {
     // Метод для установки выбранной карточки
     setPreview(item: ICardProduct) {
         this._selectedCard = item; // Устанавливаем выбранную карточку
+        this.events.emit('modalCard:open', item);
     }
 
     // Метод для получения информации о текущей выбранной карточке
