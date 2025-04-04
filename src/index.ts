@@ -158,7 +158,7 @@ events.on('buttonOrder: click', () => {
 	modal.render({
 		content: order.render({
 			address: '',
-			valid: false || appData.validateOrder(),
+			valid: appData.validateOrder(),
 			errors: [],
 		}),
 	});
@@ -169,7 +169,7 @@ events.on('order:submit', () => {
 		content: contacts.render({
 			email: '',
 			phone: '',
-			valid: false || appData.validateContacts(),
+			valid: appData.validateContacts(),
 			errors: [],
 		}),
 	});
