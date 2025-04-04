@@ -158,11 +158,10 @@ events.on('buttonOrder: click', () => {
 	modal.render({
 		content: order.render({
 			address: '',
-			valid: false,
+			valid: false || appData.validateOrder(),
 			errors: [],
 		}),
 	});
-	order.reset();
 });
 
 events.on('order:submit', () => {
@@ -170,19 +169,22 @@ events.on('order:submit', () => {
 		content: contacts.render({
 			email: '',
 			phone: '',
-			valid: false,
+			valid: false || appData.validateContacts(),
 			errors: [],
 		}),
 	});
-	contacts.reset();
 });
 
 events.on('contacts:submit', () => {
 	const items = basketModel.getProductsIds(); // Получаем продукты из корзины
 	const total = basketModel.getSumProducts(); // Получаем сумму продуктов
 
-	const orderData = appData.createOrderData(items, total);
-	console.log(orderData);
+	const orderData = {
+		...appData.order,
+		items,
+		total,
+	};
+
 	api
 		.post('/order', orderData)
 		.then((result) => {
@@ -193,21 +195,13 @@ events.on('contacts:submit', () => {
 			});
 			appData.refreshOrder();
 			basketModel.clearBasketProducts();
+			order.reset();
+			contacts.reset();
+			console.log(appData.order);
 		})
 		.catch((err) => {
-			//если произошло прерывание с сервером, открывает окно с вводом данных заказа и и сбрасывает форму для повторного ввода данных
-			appData.refreshOrder();
-			modal.render({
-				content: order.render({
-					address: '',
-					valid: false,
-					errors: [],
-				}),
-			});
 			console.error(err);
 		});
-	order.reset();
-	contacts.reset();
 });
 
 events.on('orderFormErrors:change', (errors: Partial<IOrderForm>) => {

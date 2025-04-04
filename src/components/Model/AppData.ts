@@ -1,9 +1,4 @@
-import {
-	FormErrors,
-	IOrderData,
-	IOrderForm,
-	Order,
-} from '../../types';
+import { FormErrors, IOrderData, IOrderForm, Order } from '../../types';
 import { IEvents } from '../base/events';
 
 export class AppData {
@@ -62,15 +57,6 @@ export class AppData {
 			email: '',
 			phone: '',
 			payment: '',
-		};
-	}
-
-	// Метод для создания объекта заказа
-	createOrderData(items: string[], total: number): IOrderData {
-		return {
-			...this.order,
-			items,
-			total,
 		};
 	}
 }
